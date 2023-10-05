@@ -25,10 +25,18 @@
 //#include "ns3/v4ping-helper.h"
 //#include "ns3/v4ping.h"
 
+#include <iostream>
+#include <string>
+#include <openssl/sha.h>
+
+
 using namespace ns3;
 
 
 static bool verbose = 0;
+std::string C3 = sha256(concatenated);
+std::string r0 = sha256(concatenated);
+
 
 char * stringbuilder( char* prefix,  char* sufix){
   char* buf = (char*)malloc(50); 
@@ -36,6 +44,84 @@ char * stringbuilder( char* prefix,  char* sufix){
   return  buf;
 }
 
+std::string lwhash(const std::string& input) { //DISINI TEMPAT UNTUK MEMASUKKAN FUNGSI LIGHTWEIGHT HASH FUNCTION
+    unsigned char hash[SHA256_DIGEST_LENGTH];
+    SHA256_CTX sha256;
+    SHA256_Init(&sha256);
+    SHA256_Update(&sha256, input.c_str(), input.length());
+    SHA256_Final(hash, &sha256);
+
+    std::string hashStr;
+    for (int i = 0; i < SHA256_DIGEST_LENGTH; ++i) {
+        char hex[3];
+        snprintf(hex, sizeof(hex), "%02x", hash[i]);
+        hashStr += hex;
+    }
+
+    return hashStr;
+}
+
+std::string xorStrings(const std::string& str1, const std::string& str2) {
+    std::string result;
+    for (size_t i = 0; i < str1.size(); ++i) {
+        result += str1[i] ^ str2[i];
+    }
+    return result;
+}
+
+ApplicationContainer authenticate_U1(ApplicationContainer appContainer, const ID, const PW, const B ){ 
+
+  std::string C0 = lwhash(B);
+  std::string r0 = xorString(C3, lwhash(ID+PW+C0));
+  std::string HPW = lwhash(C0 + PW + r0);
+  std::string B1 = xorString(C1, lwhash(ID+HPW));
+  std::string B2 = xorString(C2, lwhash(ID+PW));
+  std::string D1 = xorString(B1, ru);
+  std::string D2 = xorString(ID, lwhash(PID+ru+T1));
+  std::string D3 = xorString(SCN, lwhash(ID+ru+T1));
+  std::string D4 = xorString(SID, lwhash(B2+ru+T1));
+  std::string D5 = lwhash(ID+PID+SCN+ru+SID);
+
+  std::string M1[7];
+
+   M1[0] = PID;
+   M1[1] = D1;
+   M1[2] = D2;
+   M1[3] = D3;
+   M1[4] = D4;
+   M1[5] = D5;
+   M1[6] = T1;
+   appContainer = sendMessage(appContainer, time, user, gateway , M1);
+
+  return appContainer;
+}
+
+ApplicationContainer authenticate_GWN1(ApplicationContainer appContainer, std::string M1[] ){ 
+
+  std::string B1 = lwhash(M1[0]);
+  std::string r0 = xorString(C3, lwhash(ID+PW+C0));
+  std::string HPW = lwhash(C0 + PW + r0);
+  std::string B1 = xorString(C1, lwhash(ID+HPW));
+  std::string B2 = xorString(C2, lwhash(ID+PW));
+  std::string D1 = xorString(B1, ru);
+  std::string D2 = xorString(ID, lwhash(PID+ru+T1));
+  std::string D3 = xorString(SCN, lwhash(ID+ru+T1));
+  std::string D4 = xorString(SID, lwhash(B2+ru+T1));
+  std::string D5 = lwhash(ID+PID+SCN+ru+SID);
+
+  std::string M1[7];
+
+   M1[0] = PID;
+   M1[1] = D1;
+   M1[2] = D2;
+   M1[3] = D3;
+   M1[4] = D4;
+   M1[5] = D5;
+   M1[6] = T1;
+   appContainer = sendMessage(appContainer, time, user, gateway , M1);
+
+  return appContainer;
+}
 
 ApplicationContainer sendMessage(ApplicationContainer apps, double time, Ptr<Node>source,Ptr<Node>sink, uint32_t packetSize){
     Ipv4Address  remoteAddress = sink->GetObject<Ipv4> ()->GetAddress (1, 0).GetLocal ();
@@ -549,7 +635,3 @@ for (uint32_t i = 0; i < serverAppContainer.GetN (); ++i){
   std::cout <<"Total bytes received ("<<mobileUserNodes<<" , "<<clusterHeads<<") : "<< bytes_received << std::endl;
   return 0;
 }
-
-
-
-
