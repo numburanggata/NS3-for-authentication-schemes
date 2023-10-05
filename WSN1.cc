@@ -34,8 +34,6 @@ using namespace ns3;
 
 
 static bool verbose = 0;
-std::string C3 = sha256(concatenated);
-std::string r0 = sha256(concatenated);
 
 
 char * stringbuilder( char* prefix,  char* sufix){
