@@ -44,6 +44,10 @@ char * stringbuilder( char* prefix,  char* sufix){
   return  buf;
 }
 
+
+// ====================================SCRATCHPAD UNTUK PROJECT CBNS STARTS HERE ====================================
+
+
 std::string lwhash(const std::string& input) { //DISINI TEMPAT UNTUK MEMASUKKAN FUNGSI LIGHTWEIGHT HASH FUNCTION
     unsigned char hash[SHA256_DIGEST_LENGTH];
     SHA256_CTX sha256;
@@ -122,6 +126,8 @@ ApplicationContainer authenticate_GWN1(ApplicationContainer appContainer, std::s
 
   return appContainer;
 }
+
+// ====================================SCRATCHPAD UNTUK PROJECT CBNS ENDS HERE ====================================
 
 ApplicationContainer sendMessage(ApplicationContainer apps, double time, Ptr<Node>source,Ptr<Node>sink, uint32_t packetSize){
     Ipv4Address  remoteAddress = sink->GetObject<Ipv4> ()->GetAddress (1, 0).GetLocal ();
