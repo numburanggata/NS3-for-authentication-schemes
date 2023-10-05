@@ -100,33 +100,71 @@ ApplicationContainer authenticate_U1(ApplicationContainer appContainer, const ID
   return appContainer;
 }
 
-ApplicationContainer authenticate_GWN1(ApplicationContainer appContainer, std::string M1[] ){ 
+ApplicationContainer authenticate_GWN2(ApplicationContainer appContainer, std::string M1[] ){ 
 
-  std::string B1 = lwhash(M1[0]);
-  std::string r0 = xorString(C3, lwhash(ID+PW+C0));
-  std::string HPW = lwhash(C0 + PW + r0);
-  std::string B1 = xorString(C1, lwhash(ID+HPW));
-  std::string B2 = xorString(C2, lwhash(ID+PW));
-  std::string D1 = xorString(B1, ru);
-  std::string D2 = xorString(ID, lwhash(PID+ru+T1));
-  std::string D3 = xorString(SCN, lwhash(ID+ru+T1));
-  std::string D4 = xorString(SID, lwhash(B2+ru+T1));
-  std::string D5 = lwhash(ID+PID+SCN+ru+SID);
+  std::string B1 = lwhash(M1[0]+x);
+  std::string ru = xorString(M1[1], B1);
+  std::string ID = xorString(M1[2], lwhash(M1[0]+ru+T1));
+  //SEARCH ID USER TSB DARI ARRAY USERS
+  std::string SCN = xorString(M1[3], lwhash(ID+ru+T1));
+  std::string B2 = lwhash(SCN+x);
+  std::string SID = xorString(M1[4], lwhash(B2+ru+T1));
+  std::string D5_verif = lwhash(ID+M1[0]+SCN+ru+SID);
+  if (D5_verif == M1[5]) {
+        std::cout << "Terverifikasi";
+    } else {
+        std::cout << "Verifikasi Gagal";
+        return;
+    }
 
-  std::string M1[7];
+  std::string xj = lwhash(SID+x);
+  std::string D6 = xorString(ru, lwhash(IDg+xj+T2));
+  std::string D7 = lwhash(ru+xj+SID);
 
-   M1[0] = PID;
-   M1[1] = D1;
-   M1[2] = D2;
-   M1[3] = D3;
-   M1[4] = D4;
-   M1[5] = D5;
-   M1[6] = T1;
-   appContainer = sendMessage(appContainer, time, user, gateway , M1);
+  std::string M2[7];
+
+   M2[0] = D6;
+   M2[1] = D7;
+   M2[2] = D8;
+   M2[3] = T2;
+
+   appContainer = sendMessage(appContainer, time, gateway, sensor , M2);
 
   return appContainer;
 }
 
+ApplicationContainer authenticate_S3(ApplicationContainer appContainer, std::string M2[] ){ 
+
+  std::string B1 = lwhash(M2[0]+x);
+  std::string ru = xorString(M1[1], B1);
+  std::string ID = xorString(M1[2], lwhash(M1[0]+ru+T1));
+  //SEARCH ID USER TSB DARI ARRAY USERS
+  std::string SCN = xorString(M1[3], lwhash(ID+ru+T1));
+  std::string B2 = lwhash(SCN+x);
+  std::string SID = xorString(M1[4], lwhash(B2+ru+T1));
+  std::string D5_verif = lwhash(ID+M1[0]+SCN+ru+SID);
+  if (D5_verif == M1[5]) {
+        std::cout << "Terverifikasi";
+    } else {
+        std::cout << "Verifikasi Gagal";
+        return;
+    }
+
+  std::string xj = lwhash(SID+x);
+  std::string D6 = xorString(ru, lwhash(IDg+xj+T2));
+  std::string D7 = lwhash(ru+xj+SID);
+
+  std::string M2[7];
+
+   M2[0] = D6;
+   M2[1] = D7;
+   M2[2] = D8;
+   M2[3] = T2;
+
+   appContainer = sendMessage(appContainer, time, gateway, sensor , M2);
+
+  return appContainer;
+}
 // ====================================SCRATCHPAD UNTUK PROJECT CBNS ENDS HERE ====================================
 
 ApplicationContainer sendMessage(ApplicationContainer apps, double time, Ptr<Node>source,Ptr<Node>sink, uint32_t packetSize){
