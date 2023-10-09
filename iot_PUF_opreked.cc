@@ -27,157 +27,149 @@
 
 using namespace ns3;
 
-
 static bool verbose = 0;
 uint32_t M1 = 104, M2=84, M3 = 84;
 
-char * stringbuilder( char* prefix,  char* sufix){
-  char* buf = (char*)malloc(50); 
-  snprintf(buf, 50, "%s%s", prefix, sufix);
-  return  buf;
+//UNTUK RENAME OUTPUT
+char * stringbuilder( char* prefix,  char* sufix)
+{
+	char* buf = (char*)malloc(50); 
+	snprintf(buf, 50, "%s%s", prefix, sufix);
+	return  buf;
 }
 
-
-ApplicationContainer sendMessage(ApplicationContainer apps, double time, Ptr<Node>source,Ptr<Node>sink, uint32_t packetSize){
-    Ipv4Address  remoteAddress = sink->GetObject<Ipv4> ()->GetAddress (1, 0).GetLocal ();
- 	  
-  uint16_t port = 9;  // well-known echo port number
-  uint32_t maxPacketCount = 1;
-  Time interPacketInterval = Seconds (20.);
-  UdpClientHelper client (remoteAddress, port);
-  client.SetAttribute ("MaxPackets", UintegerValue (maxPacketCount));
-  client.SetAttribute ("Interval", TimeValue (interPacketInterval));
-  client.SetAttribute ("PacketSize", UintegerValue (packetSize));
-  client.SetAttribute ("StartTime", TimeValue (Seconds (time)));
-  //std::cout<<time<<">>";
-  apps.Add(client.Install (source));
-  return apps;
+//UNTUK MENGIRIMKAN PAKET VIA UDP
+ApplicationContainer sendMessage(ApplicationContainer apps, double time, Ptr<Node>source, Ptr<Node>sink, uint32_t packetSize)
+{
+	Ipv4Address  remoteAddress = sink->GetObject<Ipv4> ()->GetAddress (1, 0).GetLocal (); //DARI Ptr<Node>sink
+	uint16_t port = 9;  //PORT UDP YG DIGUNAKAN
+	uint32_t maxPacketCount = 1;
+	Time interPacketInterval = Seconds (20.);
+	UdpClientHelper client (remoteAddress, port); //PENDEFINISIAN UDP SOCKET
+	client.SetAttribute ("MaxPackets", UintegerValue (maxPacketCount));
+	client.SetAttribute ("Interval", TimeValue (interPacketInterval));
+	client.SetAttribute ("PacketSize", UintegerValue (packetSize));
+	client.SetAttribute ("StartTime", TimeValue (Seconds (time)));
+	//std::cout<<time<<">>";
+	apps.Add(client.Install (source));
+	return apps;
  }
 
-ApplicationContainer authenticate(ApplicationContainer appContainer, double time, Ptr<Node> user, Ptr<Node> gateway , Ptr<Node> device ){	
-
-  if (verbose){
-    std::cout<<"user : "<< user->GetObject<Ipv4> ()->GetAddress (1, 0).GetLocal ();
-    std::cout<<"    gateway : "<< gateway->GetObject<Ipv4> ()->GetAddress (1, 0).GetLocal ();
-	  std::cout<<"    device : "<< device->GetObject<Ipv4> ()->GetAddress (1, 0).GetLocal ()<<std::endl;
-  }
+ApplicationContainer authenticate(ApplicationContainer appContainer, double time, Ptr<Node> user, Ptr<Node> gateway , Ptr<Node> device )
+{	
+	if (verbose) //DARI ARGUMENT INPUT COMMAND
+	{
+		std::cout<<"user : "<< user->GetObject<Ipv4> ()->GetAddress (1, 0).GetLocal ();
+		std::cout<<"    gateway : "<< gateway->GetObject<Ipv4> ()->GetAddress (1, 0).GetLocal ();
+		std::cout<<"    device : "<< device->GetObject<Ipv4> ()->GetAddress (1, 0).GetLocal ()<<std::endl;
+	}
 	
 	appContainer = sendMessage(appContainer, time, user, device , M1);
 	appContainer = sendMessage(appContainer, time, gateway, device,  M2); 
 	appContainer = sendMessage(appContainer, time, device, user, M3); 
-
-  //appContainer = sendMessage(appContainer, time, user, device , M1);
-  //appContainer = sendMessage(appContainer, time, device, user, M2); 
-  return appContainer;
+	
+	//appContainer = sendMessage(appContainer, time, user, device , M1);
+	//appContainer = sendMessage(appContainer, time, device, user, M2); 
+	return appContainer;
 }
 
 
 int main (int argc, char *argv[])
 {
   
-  //
-  // First, we declare and initialize a few local variables that control some
-  // simulation parameters.
-  
-  
-  uint32_t mobileUserNodes = 3;
-  uint32_t smartDeviceNodes = 2;
-  uint32_t stopTime = 3600;
-  bool verbose = 0;
-  bool enablePcap = 0;
-  bool enableAnim = 0;
-  bool verifyResults = 0; //used for regression
-  char saveFilePrefix[50] ;
+	//
+	// First, we declare and initialize a few local variables that control some
+	// simulation parameters.
+	uint32_t mobileUserNodes = 3;  //JUMLAH ENTITAS USER
+	uint32_t smartDeviceNodes = 2; //JUMLAH WSN ATAU SENSOR
+	uint32_t stopTime = 3600;
+	bool verbose = 0;
+	bool enablePcap = 0;
+	bool enableAnim = 0;
+	bool verifyResults = 0; //used for regression
+	char saveFilePrefix[50] ;
   
 
-  //
-  // Simulation defaults are typically set next, before command line
-  // arguments are parsed.
-  //
-  //
-  //
-  // For convenience, we add the local variables to the command line argument
-  // system so that they can be overridden with flags such as
-  // "--smartDeviceNodes=20"
-  //
-  CommandLine cmd;
-  //cmd.AddValue ("backboneNodes", "number of backbone nodes", backboneNodes);
-  cmd.AddValue ("MU", "number of User nodes", mobileUserNodes);
-  cmd.AddValue ("SD", "number of smart device nodes", smartDeviceNodes);
-  cmd.AddValue ("t", "simulation stop time (seconds)", stopTime);  
-  cmd.AddValue ("p", "Enable/disable pcap file generation", enablePcap);
-  cmd.AddValue ("a", "Enable/disable xml gneration for netanim-module", enableAnim);
-  cmd.AddValue ("o", "Show output end of the simulation", verifyResults);
-  cmd.AddValue ("v", "Verbose mode.", verbose);
-  cmd.AddValue ("s", "Define the prefix for .pcap anf .xml files. Default: IOT ", saveFilePrefix);
-  cmd.AddValue ("M1", "Size of message 1 ", M1);
-  cmd.AddValue ("M2", "Size of message 2 ", M2);
-  cmd.AddValue ("M3", "Size of message 3 ", M3);
+	//
+	// Simulation defaults are typically set next, before command line
+	// arguments are parsed.
+	//
+	//
+	//
+	// For convenience, we add the local variables to the command line argument
+	// system so that they can be overridden with flags such as
+	// "--smartDeviceNodes=20"
+	//
+	CommandLine cmd;
+	//cmd.AddValue ("backboneNodes", "number of backbone nodes", backboneNodes);
+	cmd.AddValue ("MU", "number of User nodes", mobileUserNodes);
+	cmd.AddValue ("SD", "number of smart device nodes", smartDeviceNodes);
+	cmd.AddValue ("t", "simulation stop time (seconds)", stopTime);  
+	cmd.AddValue ("p", "Enable/disable pcap file generation", enablePcap);
+	cmd.AddValue ("a", "Enable/disable xml gneration for netanim-module", enableAnim);
+	cmd.AddValue ("o", "Show output end of the simulation", verifyResults);
+	cmd.AddValue ("v", "Verbose mode.", verbose);
+	cmd.AddValue ("s", "Define the prefix for .pcap anf .xml files. Default: IOT ", saveFilePrefix);
+	cmd.AddValue ("M1", "Size of message 1 ", M1);
+	cmd.AddValue ("M2", "Size of message 2 ", M2);
+	cmd.AddValue ("M3", "Size of message 3 ", M3);  
 
+	//
+	// The system global variables and the local values added to the argument
+	// system can be overridden by command line arguments by using this call.
+	//
+	cmd.Parse (argc, argv);
+	
+	if (stopTime < 2)
+	{
+		std::cout << "Use a simulation stop time >= 2 seconds" << std::endl;
+		exit (1);
+	}  
 
+	if (verbose)
+	{
+		//LogComponentEnable("UdpClient", LOG_LEVEL_INFO);
+		//LogComponentEnable("UdpServer", LOG_LEVEL_INFO);
+		LogComponentEnable("Simulator", LOG_LEVEL_INFO);
+	}
+	
+	//Since default reference loss is defined for 5 GHz, it needs to be changed when operating at 2.4 GHz
+	Config::SetDefault ("ns3::LogDistancePropagationLossModel::ReferenceLoss", DoubleValue (40.046));
   
+	// creating nodes
+	//NodeContainer allNodes;
+	NodeContainer wifiUserNodes;  //UNTUK USER
+	wifiUserNodes.Create (mobileUserNodes);
+	//allNodes.Add (wifiUserNodes);
+	NodeContainer wifiDeviceNodes;	//UNTUK SENSOR
+	wifiDeviceNodes.Create (smartDeviceNodes);
+	//allNodes.Add (wifiDeviceNodes);
+	NodeContainer wifiGateway ;	//UNTUK GWN
+	wifiGateway.Create (1);
+	//allNodes.Add (wifiGateway);
 
-  //
-  // The system global variables and the local values added to the argument
-  // system can be overridden by command line arguments by using this call.
-  //
-  cmd.Parse (argc, argv);
+	// creating wireless channel
+	YansWifiChannelHelper channel = YansWifiChannelHelper::Default ();
+	YansWifiPhyHelper phy = YansWifiPhyHelper::Default ();
+	phy.SetChannel (channel.Create ());
+	
+	WifiHelper wifi;
+	wifi.SetRemoteStationManager ("ns3::AarfWifiManager");
 
-  if (stopTime < 2)
-    {
-      std::cout << "Use a simulation stop time >= 2 seconds" << std::endl;
-      exit (1);
-    }  
+	WifiMacHelper mac;
+	Ssid ssid = Ssid ("ns-3-ssid");
+	mac.SetType ("ns3::StaWifiMac","Ssid", SsidValue (ssid), "ActiveProbing", BooleanValue (false));
+	
+	NetDeviceContainer UserDevices;
+	UserDevices = wifi.Install (phy, mac, wifiUserNodes);
+	mac.SetType ("ns3::StaWifiMac", "Ssid", SsidValue (ssid));
+	
+	NetDeviceContainer SmartDevices;
+	SmartDevices = wifi.Install (phy, mac, wifiDeviceNodes);
+	mac.SetType ("ns3::ApWifiMac", "Ssid", SsidValue (ssid));
 
-if (verbose)
-  {
-    //LogComponentEnable("UdpClient", LOG_LEVEL_INFO);
-    //LogComponentEnable("UdpServer", LOG_LEVEL_INFO);
-    LogComponentEnable("Simulator", LOG_LEVEL_INFO);
-  }
-
-  //Since default reference loss is defined for 5 GHz, it needs to be changed when operating at 2.4 GHz
-  Config::SetDefault ("ns3::LogDistancePropagationLossModel::ReferenceLoss", DoubleValue (40.046));
-  
-  // creating nodes
-  //NodeContainer allNodes;
-  NodeContainer wifiUserNodes;
-  wifiUserNodes.Create (mobileUserNodes);
-  //allNodes.Add (wifiUserNodes);
-  NodeContainer wifiDeviceNodes;
-  wifiDeviceNodes.Create (smartDeviceNodes);
-  //allNodes.Add (wifiDeviceNodes);
-  NodeContainer wifiGateway ;
-  wifiGateway.Create (1);
-  //allNodes.Add (wifiGateway);
-
-  // creating wireless channel
-  YansWifiChannelHelper channel = YansWifiChannelHelper::Default ();
-  YansWifiPhyHelper phy = YansWifiPhyHelper::Default ();
-  phy.SetChannel (channel.Create ());
-
-  WifiHelper wifi;
-  wifi.SetRemoteStationManager ("ns3::AarfWifiManager");
-
-  WifiMacHelper mac;
-  Ssid ssid = Ssid ("ns-3-ssid");
-  mac.SetType ("ns3::StaWifiMac",
-               "Ssid", SsidValue (ssid),
-               "ActiveProbing", BooleanValue (false));
-
-  NetDeviceContainer UserDevices;
-  UserDevices = wifi.Install (phy, mac, wifiUserNodes);
-  mac.SetType ("ns3::StaWifiMac",
-               "Ssid", SsidValue (ssid));
-
-  NetDeviceContainer SmartDevices;
-  SmartDevices = wifi.Install (phy, mac, wifiDeviceNodes);
-  mac.SetType ("ns3::ApWifiMac",
-               "Ssid", SsidValue (ssid));
-
-
-  NetDeviceContainer apDevices;
-  apDevices = wifi.Install (phy, mac, wifiGateway);
+	NetDeviceContainer apDevices;
+	apDevices = wifi.Install (phy, mac, wifiGateway);
 
 
   // defining Mobility
