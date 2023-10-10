@@ -172,38 +172,38 @@ int main (int argc, char *argv[])
 	apDevices = wifi.Install (phy, mac, wifiGateway);
 
 
-  // defining Mobility
-
-  MobilityHelper mobility;
-  mobility.SetPositionAllocator ("ns3::GridPositionAllocator",
-                                 "MinX", DoubleValue (-10.0),
-                                 "MinY", DoubleValue (-10.0),
-                                 "DeltaX", DoubleValue (5.0),
-                                 "DeltaY", DoubleValue (5.0),
-                                 "GridWidth", UintegerValue (5),
-                                 "LayoutType", StringValue ("RowFirst"));
-  //mobility.SetMobilityModel ("ns3::RandomWalk2dMobilityModel",
-  //                           "Bounds", RectangleValue (Rectangle (-50, 50, -25, 50)));
-
-  mobility.SetMobilityModel ("ns3::RandomDirection2dMobilityModel",
-                                 "Bounds", RectangleValue (Rectangle (-150, 150, -150, 150)),
-                                 "Speed", StringValue ("ns3::ConstantRandomVariable[Constant=3]"),
-                                 "Pause", StringValue ("ns3::ConstantRandomVariable[Constant=0.4]"));
-  mobility.Install (wifiUserNodes);
-
+	// defining Mobility
+	MobilityHelper mobility;
+	mobility.SetPositionAllocator ("ns3::GridPositionAllocator",
+					"MinX", DoubleValue (-10.0),
+					"MinY", DoubleValue (-10.0),
+					"DeltaX", DoubleValue (5.0),
+					"DeltaY", DoubleValue (5.0),
+					"GridWidth", UintegerValue (5),
+					"LayoutType", StringValue ("RowFirst"));
+	//mobility.SetMobilityModel ("ns3::RandomWalk2dMobilityModel",
+	//                           "Bounds", RectangleValue (Rectangle (-50, 50, -25, 50)));
+	
+	mobility.SetMobilityModel ("ns3::RandomDirection2dMobilityModel", //MUNGKINKAN KECEPATAN BERJALAN SEBAGAIMANA SI FANWU?
+				"Bounds", RectangleValue (Rectangle (-150, 150, -150, 150)),
+				"Speed", StringValue ("ns3::ConstantRandomVariable[Constant=3]"),
+				"Pause", StringValue ("ns3::ConstantRandomVariable[Constant=0.4]"));
+	mobility.Install (wifiUserNodes);
  
-  Ptr<ListPositionAllocator> subnetAlloc =   CreateObject<ListPositionAllocator> ();
-  subnetAlloc->Add (Vector (0.0, 0.0, 0.0));   //for gateway
-  for (uint32_t j = 0; j < wifiDeviceNodes.GetN (); ++j){
-    double  theta = (j)*360/wifiDeviceNodes.GetN();
-    uint32_t  r =((double)rand() / (RAND_MAX))*80 +20;
-    subnetAlloc->Add (Vector (sin(theta)*r, cos(theta)*r, 0.0));
-    //std::cout <<"[ "<<sin(theta)*r<<","<< cos(theta)*r<<","<< theta<<"]"<<"r = "<<r<<std::endl;
-  }
-  mobility.SetPositionAllocator (subnetAlloc);
-  mobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
-  mobility.Install (wifiGateway);
-  mobility.Install (wifiDeviceNodes);
+	Ptr<ListPositionAllocator> subnetAlloc =   CreateObject<ListPositionAllocator> ();
+	subnetAlloc->Add (Vector (0.0, 0.0, 0.0));   //for gateway
+	
+	for (uint32_t j = 0; j < wifiDeviceNodes.GetN (); ++j)
+	{
+		double  theta = (j) * 360 / wifiDeviceNodes.GetN();
+		uint32_t  r =((double)rand() / (RAND_MAX)) * 80 +20;
+		subnetAlloc-> Add (Vector (sin(theta)*r, cos(theta)*r, 0.0));
+		//std::cout <<"[ "<<sin(theta)*r<<","<< cos(theta)*r<<","<< theta<<"]"<<"r = "<<r<<std::endl;
+	}
+	mobility.SetPositionAllocator (subnetAlloc);
+	mobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
+	mobility.Install (wifiGateway);
+	mobility.Install (wifiDeviceNodes);
 
 
 
