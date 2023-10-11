@@ -205,171 +205,159 @@ int main (int argc, char *argv[])
 	mobility.Install (wifiGateway);
 	mobility.Install (wifiDeviceNodes);
 
+	// Installing internet stack
+	InternetStackHelper stack;
+	OlsrHelper olsr;
+	stack.SetRoutingHelper (olsr); // has effect on the next Install ()??
+	stack.Install (wifiUserNodes);
+	stack.Install (wifiDeviceNodes);
+	stack.Install (wifiGateway);
+	// Install Ipv4 addresses
+	
+	Ipv4AddressHelper address;
+	
+	address.SetBase ("10.1.1.0", "255.255.255.0");
+	Ipv4InterfaceContainer apInterface;
+	apInterface = address.Assign (apDevices);
+	//Ipv4InterfaceContainer userInterfaces;
+	apInterface = address.Assign (UserDevices);
+	//Ipv4InterfaceContainer deviceInterfaces;
+	apInterface = address.Assign (SmartDevices);
+	
+	
+	// crating applications
+	ApplicationContainer serverAppContainer, clientAppContainer;  
+	uint16_t port = 9;  // well-known echo port number
+	Ptr<Node> gateway = wifiGateway.Get (0);
+	UdpServerHelper server(port);
+	serverAppContainer.Add(server.Install (gateway));
+	
+	
+	double time = 1;
 
-
-
-  // Installing internet stack
-
-  InternetStackHelper stack;
-  OlsrHelper olsr;
-  stack.SetRoutingHelper (olsr); // has effect on the next Install ()??
-  stack.Install (wifiUserNodes);
-  stack.Install (wifiDeviceNodes);
-  stack.Install (wifiGateway);
-  // Install Ipv4 addresses
-
-  Ipv4AddressHelper address;
-
-  address.SetBase ("10.1.1.0", "255.255.255.0");
-  Ipv4InterfaceContainer apInterface;
-  apInterface = address.Assign (apDevices);
-  //Ipv4InterfaceContainer userInterfaces;
-  apInterface = address.Assign (UserDevices);
-  //Ipv4InterfaceContainer deviceInterfaces;
-  apInterface = address.Assign (SmartDevices);
-
-
-  // crating applications
-  ApplicationContainer serverAppContainer, clientAppContainer;  
-  uint16_t port = 9;  // well-known echo port number
-  Ptr<Node> gateway = wifiGateway.Get (0);
-  UdpServerHelper server(port);
-  serverAppContainer.Add(server.Install (gateway));
-
-
-double time = 1;
-for (uint32_t i = 0; i < wifiUserNodes.GetN (); ++i){
-	Ptr<Node> user = wifiUserNodes.Get (i);
-	for (uint32_t j = 0; j < wifiDeviceNodes.GetN (); ++j){
-		Ptr<Node> device = wifiDeviceNodes.Get (j);
-    if(i==0){
-      serverAppContainer.Add(server.Install (device));
-      //std::cout <<"device "<<j<<std::endl;
-    }
-    clientAppContainer = authenticate(clientAppContainer, time , user, gateway , device ); 
-    //time = time +.2;   
-    //std::cout <<time<<std::endl;
+	for (uint32_t i = 0; i < wifiUserNodes.GetN (); ++i)
+	{
+		Ptr<Node> user = wifiUserNodes.Get (i);
+		for (uint32_t j = 0; j < wifiDeviceNodes.GetN (); ++j)
+		{
+			Ptr<Node> device = wifiDeviceNodes.Get (j);
+			if(i==0)
+			{
+				serverAppContainer.Add(server.Install (device));
+				//std::cout <<"device "<<j<<std::endl;
+			}
+			clientAppContainer = authenticate(clientAppContainer, time , user, gateway , device ); 
+			//time = time +.2;   
+			//std::cout <<time<<std::endl;
+		}
+		serverAppContainer.Add(server.Install (user));
+		//time = time +.1;
+		//std::cout <<"user "<<i<<std::endl;
 	}
-  serverAppContainer.Add(server.Install (user));
-  //time = time +.1;
-  //std::cout <<"user "<<i<<std::endl;
-}
+
+	serverAppContainer.Start (Seconds (0.0));
+	serverAppContainer.Stop (Seconds (stopTime+1));
+	
+	//clientAppContainer.Start (Seconds (1.0));   //started induvugualy
+	clientAppContainer.Stop (Seconds (stopTime+1));
+
+	if (verbose){
+		std::cout <<"servers stops at  "<<stopTime+1<<std::endl;
+		std::cout <<"final transmission  scheduled at  "<<(time-.33)<<std::endl;
+		
+		std::cout << "server apps installed till now :"<<serverAppContainer.GetN ()<< std::endl;
+		std::cout << "client apps installed till now :"<<clientAppContainer.GetN ()<< std::endl;
+	}
+	
+	snprintf(saveFilePrefix, 50, "IOT_%dx%d_", mobileUserNodes, smartDeviceNodes);
+
+	if (enablePcap)
+	{
+		//NS_LOG_INFO ("Configure Tracing.");
+		
+		//
+		// Let's set up some ns-2-like ascii traces, using another helper class
+		//
+		//AsciiTraceHelper ascii;
+		//Ptr<OutputStreamWrapper> stream = ascii.CreateFileStream (stringbuilder(saveFilePrefix,(char*)"_trace.tr"));
+		//phy.EnableAsciiAll (stream);
+		//stack.EnableAsciiIpv4All (stream);
+		
+		phy.EnablePcap (stringbuilder(saveFilePrefix,(char*)"_users"), UserDevices, 0);
+		phy.EnablePcap (stringbuilder(saveFilePrefix,(char*)"_devices"), SmartDevices, 0);
+		phy.EnablePcap (stringbuilder(saveFilePrefix,(char*)"_gateway"), apDevices, 0);
+	}
 
 
+	if(enableAnim) 
+	{
+		AnimationInterface anim (stringbuilder(saveFilePrefix,(char*)"-animation.xml")); // Mandatory
+		for (uint32_t i = 0; i < wifiUserNodes.GetN (); ++i)
+		{
+			anim.UpdateNodeDescription (wifiUserNodes.Get (i), "MU"); // Optional
+			anim.UpdateNodeColor (wifiUserNodes.Get (i), 255, 0, 0); // Optional
+		}
+		for (uint32_t i = 0; i < wifiDeviceNodes.GetN (); ++i)
+		{
+			anim.UpdateNodeDescription (wifiDeviceNodes.Get (i), "SD"); // Optional
+			anim.UpdateNodeColor (wifiDeviceNodes.Get (i), 255, 255, 0); // Optional
+		}
+		for (uint32_t i = 0; i < wifiGateway.GetN (); ++i)
+		{
+			anim.UpdateNodeDescription (wifiGateway.Get (i), "Gateway"); // Optional
+			anim.UpdateNodeColor (wifiGateway.Get (i), 0, 255, 0); // Optional
+		}
+		//anim.EnablePacketMetadata (); // Optional/
+		anim.EnableWifiMacCounters (Seconds (0), Seconds (10)); //Optional
+		anim.EnableWifiPhyCounters (Seconds (0), Seconds (10)); //Optional
+	}
 
-  serverAppContainer.Start (Seconds (0.0));
-  serverAppContainer.Stop (Seconds (stopTime+1));
-  
+  	//Populate routing table
+	Ipv4GlobalRoutingHelper::PopulateRoutingTables ();
+	
+	// setting up simulator
+	Ptr<FlowMonitor> flowMonitor;
+	FlowMonitorHelper flowHelper;
+	flowMonitor = flowHelper.InstallAll();
+	
+	Simulator::Stop (Seconds (stopTime+1));
+	Simulator::Run ();
+	Simulator::Destroy ();
+	flowMonitor->SerializeToXmlFile(stringbuilder(saveFilePrefix,(char*)"_flowMonitor.xml"), false, false);
+	
+	uint32_t bytes_received = 0;
 
-
-  //clientAppContainer.Start (Seconds (1.0));   //started induvugualy
-  clientAppContainer.Stop (Seconds (stopTime+1));
-
-
-
-  
- 
-
-if (verbose){
-  std::cout <<"servers stops at  "<<stopTime+1<<std::endl;
-  std::cout <<"final transmission  scheduled at  "<<(time-.33)<<std::endl;
-
-  std::cout << "server apps installed till now :"<<serverAppContainer.GetN ()<< std::endl;
-  std::cout << "client apps installed till now :"<<clientAppContainer.GetN ()<< std::endl;
-}
-
-  snprintf(saveFilePrefix, 50, "IOT_%dx%d_", mobileUserNodes, smartDeviceNodes);
-
-if (enablePcap){
-    //NS_LOG_INFO ("Configure Tracing.");
-  
-    //
-    // Let's set up some ns-2-like ascii traces, using another helper class
-    //
-    //AsciiTraceHelper ascii;
-    //Ptr<OutputStreamWrapper> stream = ascii.CreateFileStream (stringbuilder(saveFilePrefix,(char*)"_trace.tr"));
-    //phy.EnableAsciiAll (stream);
-    //stack.EnableAsciiIpv4All (stream);
-  
-    phy.EnablePcap (stringbuilder(saveFilePrefix,(char*)"_users"), UserDevices, 0);
-    phy.EnablePcap (stringbuilder(saveFilePrefix,(char*)"_devices"), SmartDevices, 0);
-    phy.EnablePcap (stringbuilder(saveFilePrefix,(char*)"_gateway"), apDevices, 0);
-
-}
-
-
-if(enableAnim) {
-  AnimationInterface anim (stringbuilder(saveFilePrefix,(char*)"-animation.xml")); // Mandatory
-  for (uint32_t i = 0; i < wifiUserNodes.GetN (); ++i)
-    {
-      anim.UpdateNodeDescription (wifiUserNodes.Get (i), "MU"); // Optional
-      anim.UpdateNodeColor (wifiUserNodes.Get (i), 255, 0, 0); // Optional
-    }
-  for (uint32_t i = 0; i < wifiDeviceNodes.GetN (); ++i)
-    {
-      anim.UpdateNodeDescription (wifiDeviceNodes.Get (i), "SD"); // Optional
-      anim.UpdateNodeColor (wifiDeviceNodes.Get (i), 255, 255, 0); // Optional
-    }
-  for (uint32_t i = 0; i < wifiGateway.GetN (); ++i)
-    {
-      anim.UpdateNodeDescription (wifiGateway.Get (i), "Gateway"); // Optional
-      anim.UpdateNodeColor (wifiGateway.Get (i), 0, 255, 0); // Optional
-    }
-  //anim.EnablePacketMetadata (); // Optional/
-  anim.EnableWifiMacCounters (Seconds (0), Seconds (10)); //Optional
-  anim.EnableWifiPhyCounters (Seconds (0), Seconds (10)); //Optional
-}
-
-
-
-
-  //Populate routing table
-  Ipv4GlobalRoutingHelper::PopulateRoutingTables ();
-
-  // setting up simulator
-  
-
-  Ptr<FlowMonitor> flowMonitor;
-  FlowMonitorHelper flowHelper;
-  flowMonitor = flowHelper.InstallAll();
-
-  Simulator::Stop (Seconds (stopTime+1));
-  Simulator::Run ();
-  Simulator::Destroy ();
-  flowMonitor->SerializeToXmlFile(stringbuilder(saveFilePrefix,(char*)"_flowMonitor.xml"), false, false);
-
-
-
-
-  uint32_t bytes_received = 0;
-
-for (uint32_t i = 0; i < serverAppContainer.GetN (); ++i){
-  char nodename[30+sizeof(serverAppContainer.GetN ())*8];
-  uint32_t expected = 1;
-  uint32_t totalPacketsThrough = DynamicCast<UdpServer> (serverAppContainer.Get (i))->GetReceived ();;
-  if (i==0){
-    snprintf(nodename, sizeof(nodename), "gateway\t");
-    expected = M2;//martDeviceNodes * mobileUserNodes;
-    bytes_received += expected;
-  }else if (i<smartDeviceNodes+1){
-    snprintf(nodename, sizeof(nodename), "smart device %d ", i);
-    expected = mobileUserNodes *M1;
-    bytes_received += expected;
-  }else{
-    snprintf(nodename, sizeof(nodename), "mobile user %d ", i-smartDeviceNodes);
-    expected = smartDeviceNodes*M3;
-    bytes_received += expected;
-  } 
-
-  
-  std::cout <<"Number of bytes received at "<<nodename<<"\t : " << totalPacketsThrough <<" / "<< expected << std::endl;
-  //uint32_t lost =  DynamicCast<UdpServer> (serverAppContainer.Get (i))->GetLost ();
-  //uint32_t window =  DynamicCast<UdpServer> (serverAppContainer.Get (i))->GetPacketWindowSize ();
-  //std::cout <<"\t. Packets lost: " << lost <<"( "<<window<<" ) "<< std::endl;
-}
-
-  std::cout <<"Total bytes received ("<<mobileUserNodes<<" , "<<smartDeviceNodes<<") : "<< bytes_received << std::endl;
-  return 0;
+	for (uint32_t i = 0; i < serverAppContainer.GetN (); ++i)
+	{
+		char nodename[30+sizeof(serverAppContainer.GetN ())*8];
+		uint32_t expected = 1;
+		uint32_t totalPacketsThrough = DynamicCast<UdpServer> (serverAppContainer.Get (i))->GetReceived ();;
+		if (i==0)
+		{
+			snprintf(nodename, sizeof(nodename), "gateway\t");
+			expected = M2;//martDeviceNodes * mobileUserNodes;
+			bytes_received += expected;
+		}
+		else if (i<smartDeviceNodes+1)
+		{
+			snprintf(nodename, sizeof(nodename), "smart device %d ", i);
+			expected = mobileUserNodes *M1;
+			bytes_received += expected;
+		}
+		else
+		{
+			snprintf(nodename, sizeof(nodename), "mobile user %d ", i-smartDeviceNodes);
+			expected = smartDeviceNodes*M3;
+			bytes_received += expected;
+		} 
+		std::cout <<"Number of bytes received at "<<nodename<<"\t : " << totalPacketsThrough <<" / "<< expected << std::endl;
+		//uint32_t lost =  DynamicCast<UdpServer> (serverAppContainer.Get (i))->GetLost ();
+		//uint32_t window =  DynamicCast<UdpServer> (serverAppContainer.Get (i))->GetPacketWindowSize ();
+		//std::cout <<"\t. Packets lost: " << lost <<"( "<<window<<" ) "<< std::endl;
+	}
+	
+	std::cout <<"Total bytes received ("<<mobileUserNodes<<" , "<<smartDeviceNodes<<") : "<< bytes_received << std::endl;
+	return 0;
 }
 
 
