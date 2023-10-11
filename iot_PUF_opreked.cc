@@ -85,7 +85,7 @@ int main (int argc, char *argv[])
 	uint32_t stopTime = 3600;
 	bool verbose = 0;
 	bool enablePcap = 0;
-	bool enableAnim = 0;
+	bool enableAnim = 1;
 	bool verifyResults = 0; //used for regression
 	char saveFilePrefix[50] ;
   
