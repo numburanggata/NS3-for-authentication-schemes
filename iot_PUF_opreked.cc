@@ -28,7 +28,7 @@
 using namespace ns3;
 
 static bool verbose = 0;
-uint32_t M1 = 104, M2=84, M3 = 84;
+uint32_t M1 = 188, M2=92, M3 = 60, M4 = 124;
 
 //UNTUK RENAME OUTPUT
 char * stringbuilder( char* prefix,  char* sufix)
@@ -64,9 +64,10 @@ ApplicationContainer authenticate(ApplicationContainer appContainer, double time
 		std::cout<<"    device : "<< device->GetObject<Ipv4> ()->GetAddress (1, 0).GetLocal ()<<std::endl;
 	}
 	
-	appContainer = sendMessage(appContainer, time, user, device , M1);
+	appContainer = sendMessage(appContainer, time, user, gateway , M1);
 	appContainer = sendMessage(appContainer, time, gateway, device,  M2); 
-	appContainer = sendMessage(appContainer, time, device, user, M3); 
+	appContainer = sendMessage(appContainer, time, device, gateway, M3); 
+	appContainer = sendMessage(appContainer, time, gateway, user, M4); 
 	
 	//appContainer = sendMessage(appContainer, time, user, device , M1);
 	//appContainer = sendMessage(appContainer, time, device, user, M2); 
