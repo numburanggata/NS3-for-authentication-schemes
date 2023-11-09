@@ -114,6 +114,7 @@ int main (int argc, char *argv[])
 	cmd.AddValue ("M1", "Size of message 1 ", M1);
 	cmd.AddValue ("M2", "Size of message 2 ", M2);
 	cmd.AddValue ("M3", "Size of message 3 ", M3);  
+	cmd.AddValue ("M4", "Size of message 3 ", M4);
 
 	//
 	// The system global variables and the local values added to the argument
