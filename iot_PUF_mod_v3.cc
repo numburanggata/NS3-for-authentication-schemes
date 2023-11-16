@@ -197,8 +197,8 @@ if (verbose)
 
   //mobility.SetMobilityModel ("ns3::RandomDirection2dMobilityModel",
 //                                 "Bounds", RectangleValue (Rectangle (-150, 150, -150, 150)),
-                                 "Speed", StringValue ("ns3::ConstantRandomVariable[Constant=3]"),
-                                 "Pause", StringValue ("ns3::ConstantRandomVariable[Constant=0.4]"));
+                                // "Speed", StringValue ("ns3::ConstantRandomVariable[Constant=3]"),
+                                 //"Pause", StringValue ("ns3::ConstantRandomVariable[Constant=0.4]"));
   mobility.Install (wifiUserNodes);
 
  
