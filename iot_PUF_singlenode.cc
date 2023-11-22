@@ -65,9 +65,9 @@ ApplicationContainer authenticate(ApplicationContainer appContainer, double time
   // }
 
   appContainer = sendMessage(appContainer, time, user, gateway, M1);
-  appContainer = sendMessage(appContainer, time, gateway, device, M2); 
-  appContainer = sendMessage(appContainer, time, device, gateway, M3);
-  appContainer = sendMessage(appContainer, time, gateway, user, M4);
+  //appContainer = sendMessage(appContainer, time, gateway, device, M2); 
+  //appContainer = sendMessage(appContainer, time, device, gateway, M3);
+  //appContainer = sendMessage(appContainer, time, gateway, user, M4);
 
   //appContainer = sendMessage(appContainer, time, user, device , M1);
   //appContainer = sendMessage(appContainer, time, device, user, M2); 
