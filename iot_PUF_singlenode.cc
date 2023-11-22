@@ -28,7 +28,7 @@
 using namespace ns3;
 
 
-static bool verbose = 0;
+//static bool verbose = 0;
 uint32_t M1 = 104, M2 = 84, M3 = 84, M4 = 84;
 
 char * stringbuilder( char* prefix,  char* sufix){
