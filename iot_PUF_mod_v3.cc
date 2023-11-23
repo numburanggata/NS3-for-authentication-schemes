@@ -186,14 +186,14 @@ if (verbose)
 
   MobilityHelper mobility;
   mobility.SetPositionAllocator ("ns3::GridPositionAllocator",
-                                 "MinX", DoubleValue (-100.0),
-                                 "MinY", DoubleValue (-100.0),
+                                 "MinX", DoubleValue (-10.0),
+                                 "MinY", DoubleValue (-10.0),
                                  "DeltaX", DoubleValue (5.0),
                                  "DeltaY", DoubleValue (5.0),
                                  "GridWidth", UintegerValue (5),
                                  "LayoutType", StringValue ("RowFirst"));
   mobility.SetMobilityModel ("ns3::RandomWalk2dMobilityModel",
-                            "Bounds", RectangleValue (Rectangle (-200, 200, -25, 50)));
+                            "Bounds", RectangleValue (Rectangle (-50, 50, -25, 50)));
 
   //mobility.SetMobilityModel ("ns3::RandomDirection2dMobilityModel",
 //                                 "Bounds", RectangleValue (Rectangle (-150, 150, -150, 150)),
