@@ -29,7 +29,7 @@ using namespace ns3;
 
 
 static bool verbose = 0;
-uint32_t M1 = 104, M2 = 84, M3 = 84, M4 = 84;
+uint32_t M1 = 68, M2 = 44, M3 = 36, M4 = 52;
 
 char * stringbuilder( char* prefix,  char* sufix){
   char* buf = (char*)malloc(50); 
@@ -221,8 +221,8 @@ if (verbose)
   // Installing internet stack
 
   InternetStackHelper stack;
-  OlsrHelper olsr;
-  stack.SetRoutingHelper (olsr); // has effect on the next Install ()??
+  //OlsrHelper olsr; // BIANG KELADI BIKIN GAK SESUAI OUTPUT!!!!!!!!
+  //stack.SetRoutingHelper (olsr); // has effect on the next Install ()??
   stack.Install (wifiUserNodes);
   stack.Install (wifiDeviceNodes);
   stack.Install (wifiGateway);
@@ -247,7 +247,7 @@ if (verbose)
   serverAppContainer.Add(server.Install (gateway));
 
 
-double time = 1;
+double time = 10;
 for (uint32_t i = 0; i < wifiUserNodes.GetN (); ++i){
 	Ptr<Node> user = wifiUserNodes.Get (i);
 	for (uint32_t j = 0; j < wifiDeviceNodes.GetN (); ++j){
