@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #RUNNING >> bash iterasi.sh
-num_iterations="5"
+num_iterations="100"
 
 # Base command with fixed parameters
 base_command="./waf --run 'iot_PUF_eval --M1=68 --M2=44 --M3=36 --M4=52 " #64-bit REI
