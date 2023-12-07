@@ -24,6 +24,21 @@
 //#include "ns3/simple-device-energy-model.h"
 //#include "ns3/v4ping-helper.h"
 //#include "ns3/v4ping.h"
+//#include <fstream>
+//#include "ns3/log.h"
+//#include "ns3/abort.h"
+//#include "ns3/config.h"
+//#include "ns3/string.h"
+//#include "ns3/uinteger.h"
+//#include "ns3/inet-socket-address.h"
+//#include "ns3/internet-stack-helper.h"
+//#include "ns3/ipv4-address-helper.h"
+//#include "ns3/udp-client-server-helper.h"
+//#include "ns3/udp-echo-helper.h"
+//#include "ns3/simple-net-device.h"
+//#include "ns3/simple-channel.h"
+//#include "ns3/test.h"
+//#include "ns3/simulator.h"
 
 using namespace ns3;
 
@@ -181,39 +196,55 @@ if (verbose)
   NetDeviceContainer apDevices;
   apDevices = wifi.Install (phy, mac, wifiGateway);
 
+  //NodeContainer p2pNodes;
+  //p2pNodes.Add (wifiGateway);
+  //p2pNodes.Create (1);
+  //allNodes.Add (p2pNodes.Get (1));
+ 
+  //PointToPointHelper pointToPoint;
+  //pointToPoint.SetDeviceAttribute ("DataRate", StringValue ("5Mbps"));
+  //pointToPoint.SetChannelAttribute ("Delay", StringValue ("2ms"));
 
+  //NetDeviceContainer p2pDevices;
+  //p2pDevices = pointToPoint.Install (p2pNodes);
+
+  
+ 
   // defining Mobility
 
   MobilityHelper mobility;
+  Ptr<ListPositionAllocator> subnetAlloc =   CreateObject<ListPositionAllocator> ();
+  subnetAlloc->Add (Vector (0.0, 0.0, 0.0));   //for gateway
+  for (uint32_t j = 0; j < wifiUserNodes.GetN (); ++j){
+    double  theta = (j)*360/wifiUserNodes.GetN();
+    uint32_t  r =((double)rand() / (RAND_MAX))*80 +20;
+    subnetAlloc->Add (Vector (sin(theta)*r, cos(theta)*r, 0.0));
+    //std::cout <<"[ "<<sin(theta)*r<<","<< cos(theta)*r<<","<< theta<<"]"<<"r = "<<r<<std::endl;
+  }
+
+  mobility.SetPositionAllocator (subnetAlloc);
+  mobility.SetMobilityModel ("ns3::RandomWalk2dMobilityModel",
+                            "Bounds", RectangleValue (Rectangle (-100, 100, -100, 100)));
+  
+
+  //mobility.SetMobilityModel ("ns3::RandomDirection2dMobilityModel",
+  //                               "Bounds", RectangleValue (Rectangle (-100, 100, -100, 100)),
+  //                               "Speed", StringValue ("ns3::ConstantRandomVariable[Constant=3]"),
+  //                               "Pause", StringValue ("ns3::ConstantRandomVariable[Constant=0.4]"));
+  mobility.Install (wifiUserNodes);
+
+ 
   mobility.SetPositionAllocator ("ns3::GridPositionAllocator",
                                  "MinX", DoubleValue (-10.0),
                                  "MinY", DoubleValue (-10.0),
                                  "DeltaX", DoubleValue (5.0),
                                  "DeltaY", DoubleValue (5.0),
-                                 "GridWidth", UintegerValue (5),
+                                 "GridWidth", UintegerValue (20),
                                  "LayoutType", StringValue ("RowFirst"));
-  mobility.SetMobilityModel ("ns3::RandomWalk2dMobilityModel",
-                            "Bounds", RectangleValue (Rectangle (-50, 50, -25, 50)));
-
-  //mobility.SetMobilityModel ("ns3::RandomDirection2dMobilityModel",
-//                                 "Bounds", RectangleValue (Rectangle (-150, 150, -150, 150)),
-                                // "Speed", StringValue ("ns3::ConstantRandomVariable[Constant=3]"),
-                                 //"Pause", StringValue ("ns3::ConstantRandomVariable[Constant=0.4]"));
-  mobility.Install (wifiUserNodes);
-
- 
-  Ptr<ListPositionAllocator> subnetAlloc =   CreateObject<ListPositionAllocator> ();
-  subnetAlloc->Add (Vector (0.0, 0.0, 0.0));   //for gateway
-  for (uint32_t j = 0; j < wifiDeviceNodes.GetN (); ++j){
-    double  theta = (j)*360/wifiDeviceNodes.GetN();
-    uint32_t  r =((double)rand() / (RAND_MAX))*80 +20;
-    subnetAlloc->Add (Vector (sin(theta)*r, cos(theta)*r, 0.0));
-    //std::cout <<"[ "<<sin(theta)*r<<","<< cos(theta)*r<<","<< theta<<"]"<<"r = "<<r<<std::endl;
-  }
-  mobility.SetPositionAllocator (subnetAlloc);
   mobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
   mobility.Install (wifiGateway);
   mobility.Install (wifiDeviceNodes);
+  //AnimationInterface::SetConstantPosition (p2pNodes.Get (1), 10, 30); 
 
 
 
@@ -264,16 +295,16 @@ for (uint32_t i = 0; i < wifiUserNodes.GetN (); ++i){
   //time = time +.1;
   //std::cout <<"user "<<i<<std::endl;
 }
-
+  //NS_TEST_ASSERT_MSG_EQ (server.GetServer ()->GetLost (), 0, "Lost packets");
 
 
   serverAppContainer.Start (Seconds (0.0));
-  serverAppContainer.Stop (Seconds (stopTime+1));
+  serverAppContainer.Stop (Seconds (stopTime+10));
   
 
 
-  //clientAppContainer.Start (Seconds (1.0));   //started induvugualy
-  clientAppContainer.Stop (Seconds (stopTime+1));
+  //clientAppContainer.Start (Seconds (5.0));   //started induvugualy
+  clientAppContainer.Stop (Seconds (stopTime+10));
 
 
 
@@ -281,14 +312,14 @@ for (uint32_t i = 0; i < wifiUserNodes.GetN (); ++i){
  
 
 if (verbose){
-  std::cout <<"servers stops at  "<<stopTime+1<<std::endl;
-  std::cout <<"final transmission  scheduled at  "<<(time-.33)<<std::endl;
+  std::cout <<"servers stops at  "<<stopTime+10<<std::endl;
+  std::cout <<"transmission  scheduled at  "<<(time)<<std::endl;
 
   std::cout << "server apps installed till now :"<<serverAppContainer.GetN ()<< std::endl;
   std::cout << "client apps installed till now :"<<clientAppContainer.GetN ()<< std::endl;
 }
 
-  snprintf(saveFilePrefix, 50, "IOT_%dx%d_", mobileUserNodes, smartDeviceNodes);
+  snprintf(saveFilePrefix, 50, "IOT_%dx%d_%d", mobileUserNodes, smartDeviceNodes, M1);
 
 if (enablePcap){
     //NS_LOG_INFO ("Configure Tracing.");
@@ -343,7 +374,7 @@ if(enableAnim) {
   FlowMonitorHelper flowHelper;
   flowMonitor = flowHelper.InstallAll();
 
-  Simulator::Stop (Seconds (stopTime+10)); 
+  Simulator::Stop (Seconds (stopTime+30)); 
   Simulator::Run ();
   Simulator::Destroy ();
   flowMonitor->SerializeToXmlFile(stringbuilder(saveFilePrefix,(char*)"_flowMonitor.xml"), false, false);
