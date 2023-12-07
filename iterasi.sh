@@ -1,10 +1,11 @@
+
 #!/bin/bash
 
 #RUNNING >> bash iterasi.sh
 num_iterations="100"
 
 # Base command with fixed parameters
-base_command="./waf --run 'iot_PUF_eval --M1=188 --M2=92 --M3=60 --M4=124 " #64-bit REI
+base_command="./waf --run 'iot_PUF_eval --M1=188 --M2=92 --M3=60 --M4=124 " #256-bit REI
 #base_command="./waf --run 'iot_PUF_eval --M1=68 --M2=44 --M3=36 --M4=52 " #64-bit REI
 #base_command="./waf --run 'iot_PUF_eval --M1=78 --M2=48 --M3=38 --M4=58 " #80-bit REI
 #base_command="./waf --run 'iot_PUF_eval --M1=108 --M2=60 --M3=44 --M4=76 " #128-bit FIN
@@ -17,9 +18,9 @@ base_command="./waf --run 'iot_PUF_eval --M1=188 --M2=92 --M3=60 --M4=124 " #64-
 
 # Loop to run the command with different values of --MU
 for ((i=20; i<=$num_iterations; i+=20)); do
-    echo "Running iteration $i with --MU=$i"
-    for ((l=20; l<=$num_iterations; l+=20)); do
-        echo "Running iteration $l with --SD=$l"
-        eval "$base_command --MU=$i --SD=$l'"
-    done
+    echo "Running iteration $i with --MU=$i --SD=$i"
+    #for ((l=20; l<=$num_iterations; l+=20)); do
+        #echo "Running iteration $l with --SD=$l"
+        eval "$base_command --MU=$i --SD=$i'"
+    #done
 done
